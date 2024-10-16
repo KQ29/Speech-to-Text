@@ -33,18 +33,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     recognition.onresult = (event) => {
         let interimTranscript = '';
+        let currentTime = Date.now(); // Get the current time for pause detection
 
         for (let i = event.resultIndex; i < event.results.length; i++) {
             const transcript = event.results[i][0].transcript;
+
             if (event.results[i].isFinal) {
-                // Add punctuation support using the function from punctuationSupport.js
-                finalTranscript += processPunctuation(transcript);
+                // Process the final result with punctuation support
+                finalTranscript += processPunctuation(transcript, currentTime);
                 downloadButton.disabled = false;
             } else {
                 interimTranscript += transcript;
             }
         }
-        resultContainer.textContent = finalTranscript + interimTranscript; // Display full text with interim results.
+
+        resultContainer.textContent = finalTranscript + interimTranscript;
     };
 
     recognition.onend = () => {

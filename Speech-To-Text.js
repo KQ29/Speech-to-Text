@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const downloadButton = document.querySelector('.btn.download');
 
     let recognizing = false;
+    let finalTranscript = ''; // Store the full transcript with punctuation.
 
     languages.forEach(language => {
         const option = document.createElement('option');
@@ -31,9 +32,19 @@ document.addEventListener('DOMContentLoaded', () => {
     downloadButton.disabled = true;
 
     recognition.onresult = (event) => {
-        const result = event.results[event.results.length - 1][0].transcript;
-        resultContainer.textContent = result;
-        downloadButton.disabled = false;
+        let interimTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+                // Add punctuation support using the function from punctuationSupport.js
+                finalTranscript += processPunctuation(transcript);
+                downloadButton.disabled = false;
+            } else {
+                interimTranscript += transcript;
+            }
+        }
+        resultContainer.textContent = finalTranscript + interimTranscript; // Display full text with interim results.
     };
 
     recognition.onend = () => {
@@ -53,10 +64,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         recognizing = !recognizing;
         startListeningButton.classList.toggle('recording', recognizing);
-        recordButtonText.textContent = 'Stop Listening';
+        recordButtonText.textContent = recognizing ? 'Stop Listening' : 'Start Listening';
     }
 
     function clearResults() {
+        finalTranscript = ''; // Clear full transcript as well.
         resultContainer.textContent = '';
         downloadButton.disabled = true;
     }
@@ -78,5 +90,4 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     }
-
 });
